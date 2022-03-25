@@ -1,4 +1,52 @@
-c<-c(1,1,1).Rproj.user
+install.packages('tree')
+library(tree)
+install.packages('ILSR')
+library(ISLR) 
+attach(Carseats)
+View(Carseats)
+good_sale<-ifelse(Sales<=8,'No','Yes')
+Carseats=data.frame(Carseats,good_sale)
+
+#Classification 
+training<-sample(1:nrow(Carseats),200)
+Carseats.test<-Carseats[-training,]
+good_sale.test<-good_sale[-training]
+
+#fit model 
+install.packages('fit.models')
+tree.carseats<-tree(good_sale~.-Sales,Carseats,subset = training)
+summary(tree.carseats)
+plot(tree.carseats)
+text(tree.carseats,pretty = 0)
+
+
+#test error rate 
+tree.pr<-predict(tree.carseats,Carseats.test,type = 'class')
+table(tree.pr,good_sale.test)
+print(paste('test MES',(34+22)/200))
+
+#cv 10 times 
+
+cv.carseats<-cv.tree(tree.carseats,FUN = prune.misclass,K=10)
+cv.carseats
+par(mfrow=c(1,2))
+plot(cv.carseats$size,cv.carseats$dev,type = 'b')
+plot(cv.carseats$k,cv.carseats$dev,type = 'b')
+
+
+#prun tree
+prune.carseats<-prune.misclass(tree.carseats,best=12)
+plot(prune.carseats)
+text(prune.carseats,pretty=0)
+
+#calculate test MSE
+tree.pre<-predict(prune.carseats,Carseats.test,type = 'class')
+table(tree.pre,good_sale.test)
+print(paste('prune test MSE',(21+34)/200))
+
+
+.Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+.Rproj.user
